@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일루미나티 타로 마스터</title>
+    <style>
+        :root { --gold: #d4af37; --bg: #050a12; --card-bg: #101a2a; --text: #e0e0e0; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Pretendard', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; }
+        header { width: 100%; padding: 20px 0; text-align: center; background: linear-gradient(to bottom, #1a2a44, var(--bg)); border-bottom: 1px solid var(--gold); position: sticky; top: 0; z-index: 100; }
+        h1 { color: var(--gold); margin: 0; font-size: 1.2rem; letter-spacing: 2px; }
+        .card-menu { display: flex; overflow-x: auto; width: 100%; padding: 15px; gap: 10px; scrollbar-width: none; }
+        .card-menu::-webkit-scrollbar { display: none; }
+        .menu-item { flex: 0 0 auto; width: 50px; height: 50px; border: 1px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--gold); cursor: pointer; background: var(--card-bg); }
+        .content { width: 90%; max-width: 600px; padding-bottom: 50px; min-height: 80vh; }
+        .section { margin-top: 30px; animation: fadeIn 0.5s; }
+        .title { color: var(--gold); border-bottom: 1px solid var(--gold); padding-bottom: 5px; margin-bottom: 15px; font-size: 1.1rem; }
+        .scene-box { background: var(--card-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .quote { font-style: italic; color: #aaa; border-left: 2px solid var(--gold); padding-left: 10px; margin: 10px 0; font-size: 0.95rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .grid-item { background: #1a2a44; padding: 10px; border-radius: 5px; font-size: 0.85rem; }
+        .box { padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem; }
+        .pos { border-left: 5px solid #2ecc71; background: rgba(46, 204, 113, 0.1); }
+        .neg { border-left: 5px solid #e74c3c; background: rgba(231, 76, 60, 0.1); }
+        .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+        .tag { background: #2a3a54; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ILLUMINATI MASTER</h1>
+        <div class="card-menu" id="cardMenu"></div>
+    </header>
+    <div class="content" id="display"></div>
+
+    <script src="data.js"></script>
+    <script>
+        const menu = document.getElementById('cardMenu');
+        const display = document.getElementById('display');
+
+        // 상단 번호 메뉴 생성 (0~21)
+        for(let i=0; i<=21; i++) {
+            let div = document.createElement('div');
+            div.className = 'menu-item';
+            div.innerText = i;
+            div.onclick = () => showCard(i);
+            menu.appendChild(div);
+        }
+
+        function showCard(id) {
+            const data = cardsData[id];
+            if(!data) {
+                display.innerHTML = `<p style='text-align:center; margin-top:100px; color:var(--gold)'>[ ${id}번 ] 카드의 내용을 준비 중입니다.</p>`;
+                return;
+            }
+
+            display.innerHTML = `
+                <h2 style="color:var(--gold); text-align:center; margin-top:30px;">${data.name}</h2>
+                <div class="section">
+                    <div class="title">종합 심화 소설</div>
+                    ${data.scenes.map(s => `
+                        <div class="scene-box">
+                            <strong>${s.t}</strong>
+                            <p>${s.p}</p>
+                            <div class="quote">${s.q}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="section">
+                    <div class="title">학문적 배경</div>
+                    <div class="grid">
+                        <div class="grid-item"><b>수비학:</b> ${data.academic.sub}</div>
+                        <div class="grid-item"><b>점성학:</b> ${data.academic.star}</div>
+                    </div>
+                    <p style="font-size:0.85rem; padding:10px; color:#bdc3c7;"><b>역사적 배경:</b> ${data.academic.hist}</p>
+                </div>
+                <div class="section">
+                    <div class="title">✅ 긍정 버전</div>
+                    ${data.positive.map(p => `<div class="box pos"><b>${p.t}</b><br>${p.d}</div>`).join('')}
+                </div>
+                <div class="section">
+                    <div class="title">❌ 부정 버전</div>
+                    ${data.negative.map(n => `<div class="box neg"><b>${n.t}</b><br>${n.d}</div>`).join('')}
+                </div>
+                <div class="section">
+                    <div class="title">💡 오감 포인트</div>
+                    <div class="tags">${data.senses.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
+                </div>
+            `;
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+        // 초기 실행
+        window.onload = () => showCard(0);
+    </script>
+</body>
+</html>
