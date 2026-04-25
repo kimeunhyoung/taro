@@ -322,6 +322,19 @@
   }
   .ptag.pos { background: rgba(100,216,200,0.1); border: 0.5px solid rgba(100,216,200,0.25); color: var(--teal); }
   .ptag.neg { background: rgba(224,122,106,0.1); border: 0.5px solid rgba(224,122,106,0.25); color: var(--coral); }
+  .pattern-list {
+    margin: 0;
+    padding-left: 1rem;
+    display: grid;
+    gap: 0.45rem;
+  }
+  .pattern-item {
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--text);
+  }
+  .pattern-item.pos::marker { color: var(--teal); }
+  .pattern-item.neg::marker { color: var(--coral); }
 
   /* 스트레스/흑화 카드 */
   .card.stress { border-color: rgba(224,122,106,0.3); }
@@ -482,6 +495,28 @@
     display: flex; align-items: center; gap: 6px;
   }
   .tts-play-all:hover { background: var(--purple); }
+  .tts-pause-btn {
+    background: var(--surface3);
+    border: 0.5px solid var(--border2);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+  }
+  .tts-pause-btn:hover { border-color: var(--purple); color: var(--purple-light); }
+  .tts-nav-btn {
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-dim);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.65rem;
+    cursor: pointer;
+  }
+  .tts-nav-btn:hover { border-color: var(--purple); color: var(--purple-light); }
 
   /* 영혼 문장 */
   .soul-sentence {
@@ -518,6 +553,27 @@
     border-radius: 14px;
     padding: 1.5rem;
   }
+  .expanded-wrap {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .expanded-item {
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 0.8rem 0.9rem;
+  }
+  .expanded-label {
+    font-size: 0.72rem;
+    color: var(--gold);
+    letter-spacing: 0.12em;
+    margin-bottom: 0.35rem;
+  }
+  .expanded-text {
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--text);
+  }
 
   /* 비어있을때 */
   .empty-state {
@@ -536,6 +592,12 @@
     .birth-input-row { gap: 8px; }
     .birth-field input { width: 75px; }
     .birth-field input.wide { width: 95px; }
+    .card { padding: 1.15rem; }
+    .card-body { font-size: 0.92rem; line-height: 1.85; }
+    .card-body.italic { font-size: 0.96rem; line-height: 1.95; }
+    .expanded-item { padding: 0.75rem 0.8rem; }
+    .expanded-text { font-size: 0.88rem; line-height: 1.8; }
+    .pattern-item { font-size: 0.88rem; line-height: 1.75; }
   }
 </style>
 </head>
@@ -598,6 +660,10 @@
       <label>목소리</label>
       <select id="tts-voice"></select>
       <button class="tts-play-all" onclick="readAll()">▶ 전체 읽기</button>
+      <button class="tts-nav-btn" onclick="prevSection()">◀ 이전</button>
+      <button class="tts-nav-btn" onclick="replaySection()">↺ 다시</button>
+      <button class="tts-nav-btn" onclick="nextSection()">▶ 다음</button>
+      <button id="tts-pause-btn" class="tts-pause-btn" onclick="togglePauseResume()">⏸ 일시정지</button>
       <button class="tts-btn" onclick="stopTTS()">■ 멈춤</button>
     </div>
 
@@ -605,9 +671,8 @@
     <div class="tabs">
       <button class="tab active" onclick="switchTab('basic')">기본정보</button>
       <button class="tab" onclick="switchTab('personality')">성격패턴</button>
-      <button class="tab" onclick="switchTab('fortune')">오늘의운세</button>
       <button class="tab" onclick="switchTab('finance')">금전·직업</button>
-      <button class="tab" onclick="switchTab('soul')">영혼의숙제</button>
+      <button class="tab" onclick="switchTab('fortune')">오늘의운세</button>
       <button class="tab" onclick="switchTab('compat')">궁합</button>
     </div>
 
@@ -617,31 +682,28 @@
       <div class="card" id="card-monologue">
         <div class="card-title">✦ 숫자의 독백</div>
         <div class="card-body italic" id="txt-monologue"></div>
-        <div class="tts-row"><button class="tts-btn" onclick="readText('txt-monologue', this)"><span class="tts-icon">▶</span> 읽기</button></div>
       </div>
       <div class="grid-2">
         <div class="card">
           <div class="card-title">🌀 에너지 형태</div>
           <div class="card-body" id="txt-energy"></div>
-          <div class="tts-row"><button class="tts-btn" onclick="readText('txt-energy', this)"><span class="tts-icon">▶</span> 읽기</button></div>
         </div>
         <div class="aura-card">
           <div class="card-title">✨ 외모에서 풍기는 아우라</div>
           <div class="card-body" id="txt-aura"></div>
-          <div class="tts-row"><button class="tts-btn" onclick="readText('txt-aura', this)"><span class="tts-icon">▶</span> 읽기</button></div>
         </div>
       </div>
       <div class="card">
         <div class="card-title">🔍 디테일 묘사</div>
         <div class="card-body" id="txt-detail"></div>
-        <div class="tts-row"><button class="tts-btn" onclick="readText('txt-detail', this)"><span class="tts-icon">▶</span> 읽기</button></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📚 확장 해석</div>
+        <div class="card-body" id="txt-expanded"></div>
       </div>
       <div class="soul-sentence" id="soul-sentence-area">
         <div class="card-title" style="text-align:center;margin-bottom:0.75rem">💫 영혼의 한 문장</div>
         <p id="txt-soul-sentence"></p>
-        <div class="tts-row" style="justify-content:center;margin-top:0.75rem">
-          <button class="tts-btn" onclick="readText('txt-soul-sentence', this)"><span class="tts-icon">▶</span> 읽기</button>
-        </div>
       </div>
     </div>
 
@@ -651,63 +713,32 @@
         <div class="card-title">💬 행동과 언어 패턴</div>
         <div class="pattern-group">
           <div class="pattern-label pos">✧ 긍정적으로 달고 사는 말</div>
-          <div class="pattern-tags" id="tags-pos"></div>
+          <ul class="pattern-list" id="tags-pos"></ul>
         </div>
         <div class="pattern-group" style="margin-top:1rem">
           <div class="pattern-label neg">✧ 부정적으로 달고 사는 말</div>
-          <div class="pattern-tags" id="tags-neg"></div>
+          <ul class="pattern-list" id="tags-neg"></ul>
         </div>
-        <div class="tts-row"><button class="tts-btn" onclick="readPatterns()"><span class="tts-icon">▶</span> 읽기</button></div>
+        <div class="pattern-group" id="behavior-act-pos-wrap" style="margin-top:1rem; display:none;">
+          <div class="pattern-label pos">✧ 긍정 행동 패턴</div>
+          <ul class="pattern-list" id="acts-pos"></ul>
+        </div>
+        <div class="pattern-group" id="behavior-act-neg-wrap" style="margin-top:1rem; display:none;">
+          <div class="pattern-label neg">✧ 부정 행동 패턴</div>
+          <ul class="pattern-list" id="acts-neg"></ul>
+        </div>
       </div>
       <div class="card stress">
         <div class="card-title" style="color:var(--coral)">🔴 스트레스 버튼</div>
         <div class="card-body" id="txt-stress"></div>
-        <div class="tts-row"><button class="tts-btn" onclick="readText('txt-stress', this)"><span class="tts-icon">▶</span> 읽기</button></div>
       </div>
       <div class="card dark-mode">
         <div class="card-title" style="color:var(--purple-light)">🖤 흑화 모드</div>
         <div class="card-body" id="txt-dark"></div>
-        <div class="tts-row"><button class="tts-btn" onclick="readText('txt-dark', this)"><span class="tts-icon">▶</span> 읽기</button></div>
       </div>
       <div class="card recovery">
         <div class="card-title" style="color:var(--teal)">💚 개운법</div>
         <div class="card-body" id="txt-recovery"></div>
-        <div class="tts-row"><button class="tts-btn" onclick="readText('txt-recovery', this)"><span class="tts-icon">▶</span> 읽기</button></div>
-      </div>
-    </div>
-
-    <!-- 탭: 오늘의 운세 -->
-    <div id="tab-fortune" class="content">
-      <div class="fortune-day">
-        <span class="day-num" id="fortune-day-num"></span>
-        <div class="day-label" id="fortune-today-date"></div>
-        <div style="margin-top:0.5rem; font-size:0.8rem; color:var(--text-dim)" id="fortune-day-info"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">🌟 오늘의 전체 운세</div>
-        <div class="card-body" id="txt-fortune-overall"></div>
-        <div class="tts-row"><button class="tts-btn" onclick="readText('txt-fortune-overall', this)"><span class="tts-icon">▶</span> 읽기</button></div>
-      </div>
-      <div class="fortune-grid">
-        <div class="fortune-item">
-          <div class="f-label">💰 금전운</div>
-          <div class="f-content" id="txt-fortune-money"></div>
-        </div>
-        <div class="fortune-item">
-          <div class="f-label">💼 직업운</div>
-          <div class="f-content" id="txt-fortune-career"></div>
-        </div>
-        <div class="fortune-item">
-          <div class="f-label">💕 애정운</div>
-          <div class="f-content" id="txt-fortune-love"></div>
-        </div>
-      </div>
-      <div class="card" style="margin-top:1rem">
-        <div class="card-title" style="color:var(--gold)">✧ 오늘의 행운 아이템</div>
-        <div class="lucky-grid" id="lucky-grid"></div>
-        <div class="tts-row" style="margin-top:0.75rem">
-          <button class="tts-btn" onclick="readFortune()"><span class="tts-icon">▶</span> 운세 전체 읽기</button>
-        </div>
       </div>
     </div>
 
@@ -727,24 +758,36 @@
           <div class="fi-text" id="txt-career"></div>
         </div>
       </div>
-      <div class="tts-row" style="margin-top:0.75rem">
-        <button class="tts-btn" onclick="readFinance()"><span class="tts-icon">▶</span> 전체 읽기</button>
-      </div>
     </div>
 
-    <!-- 탭: 영혼의 숙제 -->
-    <div id="tab-soul" class="content">
-      <div class="card" style="border-color:rgba(201,168,76,0.3)">
-        <div class="card-title">🪬 영혼의 숙제</div>
-        <div class="card-body" id="txt-soul-lesson" style="font-size:1rem;line-height:2;color:var(--text)"></div>
-        <div class="tts-row"><button class="tts-btn" onclick="readText('txt-soul-lesson', this)"><span class="tts-icon">▶</span> 읽기</button></div>
+    <!-- 탭: 오늘의 운세 -->
+    <div id="tab-fortune" class="content">
+      <div class="fortune-day">
+        <span class="day-num" id="fortune-day-num"></span>
+        <div class="day-label" id="fortune-today-date"></div>
+        <div style="margin-top:0.5rem; font-size:0.8rem; color:var(--text-dim)" id="fortune-day-info"></div>
       </div>
-      <div class="soul-sentence" style="margin-top:1.5rem">
-        <div class="card-title" style="text-align:center;margin-bottom:0.75rem">💫 영혼의 한 문장</div>
-        <p id="txt-soul-sentence2"></p>
-        <div class="tts-row" style="justify-content:center;margin-top:0.75rem">
-          <button class="tts-btn" onclick="readText('txt-soul-sentence2', this)"><span class="tts-icon">▶</span> 읽기</button>
+      <div class="card">
+        <div class="card-title">🌟 오늘의 전체 운세</div>
+        <div class="card-body" id="txt-fortune-overall"></div>
+      </div>
+      <div class="fortune-grid">
+        <div class="fortune-item">
+          <div class="f-label">💰 금전운</div>
+          <div class="f-content" id="txt-fortune-money"></div>
         </div>
+        <div class="fortune-item">
+          <div class="f-label">💼 직업운</div>
+          <div class="f-content" id="txt-fortune-career"></div>
+        </div>
+        <div class="fortune-item">
+          <div class="f-label">💕 애정운</div>
+          <div class="f-content" id="txt-fortune-love"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:1rem">
+        <div class="card-title" style="color:var(--gold)">✧ 오늘의 행운 아이템</div>
+        <div class="lucky-grid" id="lucky-grid"></div>
       </div>
     </div>
 
@@ -787,9 +830,6 @@
               <div class="compat-score-fill" id="compat-fill" style="width:72%"></div>
             </div>
             <div class="card-body" id="compat-desc" style="margin-top:0.75rem;font-size:0.9rem;line-height:1.9;color:var(--text)"></div>
-            <div class="tts-row" style="margin-top:0.75rem">
-              <button class="tts-btn" onclick="readText('compat-desc', this)"><span class="tts-icon">▶</span> 읽기</button>
-            </div>
           </div>
         </div>
       </div>
@@ -814,6 +854,10 @@
 let currentNum = null;
 let ttsVoices = [];
 let currentUtterance = null;
+let ttsSectionQueue = [];
+let ttsSectionIndex = 0;
+let isReadingAll = false;
+let isManualSectionJump = false;
 
 // TTS 초기화
 function initTTS() {
@@ -854,10 +898,27 @@ function speak(text) {
 
 function stopTTS() {
   if (window.speechSynthesis) speechSynthesis.cancel();
+  ttsSectionQueue = [];
+  ttsSectionIndex = 0;
+  isReadingAll = false;
+  const pauseBtn = document.getElementById('tts-pause-btn');
+  if (pauseBtn) pauseBtn.textContent = '⏸ 일시정지';
   document.querySelectorAll('.tts-btn.playing').forEach(b => {
     b.classList.remove('playing');
     b.querySelector('.tts-icon').textContent = '▶';
   });
+}
+
+function togglePauseResume() {
+  if (!window.speechSynthesis || !speechSynthesis.speaking) return;
+  const pauseBtn = document.getElementById('tts-pause-btn');
+  if (speechSynthesis.paused) {
+    speechSynthesis.resume();
+    if (pauseBtn) pauseBtn.textContent = '⏸ 일시정지';
+  } else {
+    speechSynthesis.pause();
+    if (pauseBtn) pauseBtn.textContent = '▶ 이어읽기';
+  }
 }
 
 function readText(id, btn) {
@@ -902,22 +963,112 @@ function readFinance() {
   speak(`금전운: ${d.finance.moneyLuck}. 부의 통로: ${d.finance.wealthPath}. 추천 직업: ${d.finance.career}`);
 }
 
+function buildCompatReadAllText(n, d) {
+  const parts = ['궁합 추천입니다.'];
+  (d.compatibility?.best || []).forEach((bn) => {
+    const c = getCompatibility(n, bn);
+    parts.push(`최고 궁합 ${bn}번, ${c.title}. ${c.desc}`);
+  });
+  (d.compatibility?.good || []).forEach((gn) => {
+    const c = getCompatibility(n, gn);
+    parts.push(`좋은 궁합 ${gn}번, ${c.title}. ${c.desc}`);
+  });
+  if (parts.length === 1) {
+    parts.push('현재 숫자에 대한 궁합 데이터를 불러올 수 없습니다.');
+  }
+  return parts.join(' ');
+}
+
 function readAll() {
   if (!currentNum) return;
   const d = numerologyData[currentNum];
-  const { fortune } = getTodayFortune(currentNum);
-  const text = [
-    `운명수 ${currentNum}번. ${d.keywords.join(', ')}.`,
-    `숫자의 독백. ${d.monologue}`,
-    `에너지 형태. ${d.energyForm}`,
-    `디테일 묘사. ${d.detailDesc}`,
-    `스트레스 버튼. ${d.stressButton}`,
-    `개운법. ${d.recovery}`,
-    `오늘의 운세. ${fortune.overall}`,
-    `영혼의 숙제. ${d.soulLesson}`,
-    `영혼의 한 문장. ${d.soulSentence}`
+  const behavior = d.behaviorPatterns || { positive: [], negative: [] };
+  const actions = d.behaviorActions || { positive: [], negative: [] };
+  const { fortune, personalDay } = getTodayFortune(currentNum);
+  const luck = fortune.lucky;
+  const expandedText = [
+    `${currentNum}번의 핵심 기질은 ${d.keywords.slice(0, 4).join(', ')}.`,
+    d.energyForm,
+    d.detailDesc,
+    `${d.finance.moneyLuck} ${d.finance.wealthPath}`,
+    `특히 ${(d.compatibility?.best || []).join(', ')}번과의 조합에서 강점이 커집니다.`
   ].join(' ');
-  speak(text);
+  const sections = [
+    `기본 정보입니다. 운명수 ${currentNum}번. 핵심 키워드는 ${d.keywords.join(', ')}. 숫자의 독백. ${d.monologue} 에너지 형태. ${d.energyForm} 외모에서 풍기는 아우라. ${d.aura} 디테일 묘사. ${d.detailDesc} 확장 해석. ${expandedText} 영혼의 한 문장. ${d.soulSentence} 영혼의 숙제. ${d.soulLesson}`,
+    `성격 패턴입니다. 긍정적으로 달고 사는 말. ${behavior.positive.join(' ')} 부정적으로 달고 사는 말. ${behavior.negative.join(' ')} 긍정 행동 패턴. ${actions.positive.join(' ')} 부정 행동 패턴. ${actions.negative.join(' ')} 스트레스 버튼. ${d.stressButton} 흑화 모드. ${d.darkMode} 개운법. ${d.recovery}`,
+    `금전과 직업입니다. 금전운. ${d.finance.moneyLuck} 부의 통로. ${d.finance.wealthPath} 직업. ${d.finance.career}`,
+    `오늘의 운세입니다. 개인일 ${personalDay}. ${fortune.overall} 금전운. ${fortune.money} 직업운. ${fortune.career} 애정운. ${fortune.love} 오늘의 행운. 색상 ${luck.color}, 숫자 ${luck.number}, 아이템 ${luck.item}, 방향 ${luck.direction}.`,
+    buildCompatReadAllText(currentNum, d)
+  ];
+  playSectionQueue(sections);
+}
+
+function playSectionQueue(sections) {
+  if (!window.speechSynthesis || !sections?.length) return;
+  stopTTS();
+  isReadingAll = true;
+  ttsSectionQueue = sections;
+  ttsSectionIndex = 0;
+  const pauseBtn = document.getElementById('tts-pause-btn');
+  if (pauseBtn) pauseBtn.textContent = '⏸ 일시정지';
+  speakSectionAtIndex(0);
+}
+
+function speakSectionAtIndex(index) {
+  if (!isReadingAll) return;
+  if (index >= ttsSectionQueue.length) {
+    isReadingAll = false;
+    const pauseBtn = document.getElementById('tts-pause-btn');
+    if (pauseBtn) pauseBtn.textContent = '⏸ 일시정지';
+    return;
+  }
+  ttsSectionIndex = index;
+  const u = new SpeechSynthesisUtterance(ttsSectionQueue[index]);
+  u.rate = parseFloat(document.getElementById('tts-rate').value);
+  const sel = document.getElementById('tts-voice');
+  const voices = ttsVoices.filter(v => v.lang.startsWith('ko'));
+  const pool = voices.length ? voices : ttsVoices;
+  if (pool[sel.value]) u.voice = pool[sel.value];
+  u.lang = 'ko-KR';
+  u.onend = () => {
+    if (isManualSectionJump) {
+      isManualSectionJump = false;
+      return;
+    }
+    if (!isReadingAll) return;
+    speakSectionAtIndex(ttsSectionIndex + 1);
+  };
+  currentUtterance = u;
+  speechSynthesis.speak(u);
+}
+
+function prevSection() {
+  if (!window.speechSynthesis || !isReadingAll || !ttsSectionQueue.length) return;
+  isManualSectionJump = true;
+  speechSynthesis.cancel();
+  const target = Math.max(0, ttsSectionIndex - 1);
+  const pauseBtn = document.getElementById('tts-pause-btn');
+  if (pauseBtn) pauseBtn.textContent = '⏸ 일시정지';
+  speakSectionAtIndex(target);
+}
+
+function replaySection() {
+  if (!window.speechSynthesis || !isReadingAll || !ttsSectionQueue.length) return;
+  isManualSectionJump = true;
+  speechSynthesis.cancel();
+  const pauseBtn = document.getElementById('tts-pause-btn');
+  if (pauseBtn) pauseBtn.textContent = '⏸ 일시정지';
+  speakSectionAtIndex(ttsSectionIndex);
+}
+
+function nextSection() {
+  if (!window.speechSynthesis || !isReadingAll || !ttsSectionQueue.length) return;
+  isManualSectionJump = true;
+  speechSynthesis.cancel();
+  const target = Math.min(ttsSectionQueue.length - 1, ttsSectionIndex + 1);
+  const pauseBtn = document.getElementById('tts-pause-btn');
+  if (pauseBtn) pauseBtn.textContent = '⏸ 일시정지';
+  speakSectionAtIndex(target);
 }
 
 // 생년월일 계산
@@ -966,11 +1117,21 @@ function renderNumber(n) {
   document.getElementById('txt-energy').textContent = d.energyForm;
   document.getElementById('txt-aura').textContent = d.aura;
   document.getElementById('txt-detail').textContent = d.detailDesc;
+  document.getElementById('txt-expanded').innerHTML = buildExpandedDescription(n, d);
   document.getElementById('txt-soul-sentence').textContent = d.soulSentence;
 
   // 성격 탭
-  document.getElementById('tags-pos').innerHTML = d.behaviorPatterns.positive.map(t => `<span class="ptag pos">${t}</span>`).join('');
-  document.getElementById('tags-neg').innerHTML = d.behaviorPatterns.negative.map(t => `<span class="ptag neg">${t}</span>`).join('');
+  document.getElementById('tags-pos').innerHTML = d.behaviorPatterns.positive.map(t => `<li class="pattern-item pos">${t}</li>`).join('');
+  document.getElementById('tags-neg').innerHTML = d.behaviorPatterns.negative.map(t => `<li class="pattern-item neg">${t}</li>`).join('');
+
+  const actPosWrap = document.getElementById('behavior-act-pos-wrap');
+  const actNegWrap = document.getElementById('behavior-act-neg-wrap');
+  const actPos = d.behaviorActions?.positive || [];
+  const actNeg = d.behaviorActions?.negative || [];
+  document.getElementById('acts-pos').innerHTML = actPos.map(t => `<li class="pattern-item pos">${t}</li>`).join('');
+  document.getElementById('acts-neg').innerHTML = actNeg.map(t => `<li class="pattern-item neg">${t}</li>`).join('');
+  actPosWrap.style.display = actPos.length ? 'block' : 'none';
+  actNegWrap.style.display = actNeg.length ? 'block' : 'none';
   document.getElementById('txt-stress').textContent = d.stressButton;
   document.getElementById('txt-dark').textContent = d.darkMode;
   document.getElementById('txt-recovery').textContent = d.recovery;
@@ -983,12 +1144,30 @@ function renderNumber(n) {
   document.getElementById('txt-wealth').textContent = d.finance.wealthPath;
   document.getElementById('txt-career').textContent = d.finance.career;
 
-  // 영혼
-  document.getElementById('txt-soul-lesson').textContent = d.soulLesson;
-  document.getElementById('txt-soul-sentence2').textContent = d.soulSentence;
-
   // 궁합 추천
   renderBestMatch(n, d);
+}
+
+function buildExpandedDescription(n, d) {
+  const keywords = Array.isArray(d.keywords) ? d.keywords.slice(0, 4).join(", ") : "";
+  const compatBest = (d.compatibility?.best || []).join(", ");
+  const sections = [
+    { label: "핵심 기질", text: `${n}번의 핵심 기질은 ${keywords}로 요약됩니다. ${d.energyForm}` },
+    { label: "관계와 성향", text: d.detailDesc },
+    { label: "삶의 과제", text: `${d.soulLesson} 이 과제를 통과할수록 장점이 안정적으로 발현됩니다.` },
+    { label: "현실 적용", text: `${d.finance.moneyLuck} ${d.finance.wealthPath}` },
+    { label: "궁합 포인트", text: `특히 ${compatBest}번과의 조합에서 강점이 커지며, 서로의 리듬을 맞출수록 잠재력이 열립니다.` }
+  ];
+  return `
+    <div class="expanded-wrap">
+      ${sections.map(s => `
+        <div class="expanded-item">
+          <div class="expanded-label">${s.label}</div>
+          <div class="expanded-text">${s.text}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 function renderFortune(n) {
@@ -1063,7 +1242,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
   document.getElementById(`tab-${name}`).classList.add('active');
-  const tabs = ['basic','personality','fortune','finance','soul','compat'];
+  const tabs = ['basic','personality','finance','fortune','compat'];
   const idx = tabs.indexOf(name);
   document.querySelectorAll('.tab')[idx]?.classList.add('active');
 }
